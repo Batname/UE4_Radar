@@ -6,6 +6,7 @@
 #include "TextureResource.h"
 #include "CanvasItem.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 ARadarHUD::ARadarHUD()
 {
@@ -35,6 +36,9 @@ void ARadarHUD::DrawHUD()
 
 	// -------------------- Radar logic --------------------
 	DrawRadar();
+	DrawPlayerInRadar();
+	PerformRadarRaycast();
+	DrawRaycastedActors();
 }
 
 FVector2D ARadarHUD::GetRadarCenterPosition()
@@ -52,5 +56,79 @@ void ARadarHUD::DrawRadar()
 		float fixedY = FMath::Sin(i) * RadarRadius;
 
 		DrawLine(RadarCenter.X, RadarCenter.Y, RadarCenter.X + fixedX, RadarCenter.Y + fixedY, FLinearColor::Gray, 1.f);
+	}
+}
+
+void ARadarHUD::DrawPlayerInRadar()
+{
+	FVector2D RadarCenter = GetRadarCenterPosition();
+
+	DrawRect(FLinearColor::Blue, RadarCenter.X, RadarCenter.Y, DrawPixelSize, DrawPixelSize);
+}
+
+void ARadarHUD::PerformRadarRaycast()
+{
+	APawn* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (Player)
+	{
+		TArray<FHitResult> HitResults;
+		FVector EndLocation = Player->GetActorLocation();
+		EndLocation.Z += SphereHeight;
+
+		FCollisionShape CollisionShape;
+		CollisionShape.ShapeType = ECollisionShape::Sphere;
+		CollisionShape.SetSphere(SphereRadius);
+
+		GetWorld()->SweepMultiByChannel(HitResults, Player->GetActorLocation(), EndLocation, FQuat::Identity, ECollisionChannel::ECC_WorldDynamic, CollisionShape);
+
+		for (auto It : HitResults)
+		{
+			AActor* CurrentActor = It.GetActor();
+
+			if (CurrentActor && CurrentActor->ActorHasTag("Radar"))
+			{
+				RadarActors.Add(CurrentActor);
+			}
+		}
+
+	}
+}
+
+
+FVector2D ARadarHUD::ConvertWorldLocationToLocal(AActor* ActorToPlace)
+{
+	APawn* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (Player && ActorToPlace)
+	{
+		FVector ActorsLocal3dVector = Player->GetTransform().InverseTransformPosition(ActorToPlace->GetActorLocation());
+		
+		ActorsLocal3dVector = FRotator(0.f, -90.f, 0.f).RotateVector(ActorsLocal3dVector);
+
+		ActorsLocal3dVector /= RadarDistanceScale;
+
+		return FVector2D(ActorsLocal3dVector);
+	}
+
+	return FVector2D(0,0);
+}
+
+void ARadarHUD::DrawRaycastedActors()
+{
+	FVector2D RadarCenter = GetRadarCenterPosition();
+
+	for (auto It : RadarActors)
+	{
+		FVector2D convertedLocation = ConvertWorldLocationToLocal(It);
+
+		FVector tempVector = FVector(convertedLocation.X, convertedLocation.Y, 0.f);
+
+		tempVector = tempVector.GetClampedToMaxSize2D(RadarRadius - DrawPixelSize);
+
+		convertedLocation.X = tempVector.X;
+		convertedLocation.Y = tempVector.Y;
+
+		DrawRect(FLinearColor::Red, RadarCenter.X + convertedLocation.X, RadarCenter.Y + convertedLocation.Y, DrawPixelSize, DrawPixelSize);
 	}
 }

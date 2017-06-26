@@ -35,11 +35,33 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Radar)
 	float DrawPixelSize = 5.f;
 
+
+	UPROPERTY(EditAnywhere, Category = Radar)
+	float SphereHeight = 200.0f;
+
+	UPROPERTY(EditAnywhere, Category = Radar)
+	float SphereRadius = 2750.f;
+
+	/** Handle actors on the map */
+	TArray<AActor*> RadarActors;
+
+	UPROPERTY(EditAnywhere, Category = Radar)
+	float RadarDistanceScale = 25.f;
+
+
 private:
 	 /** Return center of the radar position */
 	FVector2D GetRadarCenterPosition();
 
 	/** Draw radar */
 	void DrawRadar();
+
+	void DrawPlayerInRadar();
+
+	void PerformRadarRaycast();
+
+	FVector2D ConvertWorldLocationToLocal(AActor* ActorToPlace);
+
+	void DrawRaycastedActors();
 };
 
