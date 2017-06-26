@@ -21,5 +21,25 @@ private:
 	/** Crosshair asset pointer */
 	class UTexture2D* CrosshairTex;
 
+protected:
+	UPROPERTY(EditAnywhere, Category = Radar)
+	FVector2D RadarStartLocation = FVector2D(0.9f, 0.2f);
+
+	/** Radious of radar */
+	UPROPERTY(EditAnywhere, Category = Radar)
+	float RadarRadius = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = Radar)
+	float DegreeStep = 0.25f;
+
+	UPROPERTY(EditAnywhere, Category = Radar)
+	float DrawPixelSize = 5.f;
+
+private:
+	 /** Return center of the radar position */
+	FVector2D GetRadarCenterPosition();
+
+	/** Draw radar */
+	void DrawRadar();
 };
 

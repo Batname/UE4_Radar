@@ -32,4 +32,25 @@ void ARadarHUD::DrawHUD()
 	FCanvasTileItem TileItem( CrosshairDrawPosition, CrosshairTex->Resource, FLinearColor::White);
 	TileItem.BlendMode = SE_BLEND_Translucent;
 	Canvas->DrawItem( TileItem );
+
+	// -------------------- Radar logic --------------------
+	DrawRadar();
+}
+
+FVector2D ARadarHUD::GetRadarCenterPosition()
+{
+	return (Canvas) ? FVector2D(Canvas->SizeX * RadarStartLocation.X, Canvas->SizeY * RadarStartLocation.Y) : FVector2D(0, 0);
+}
+
+void ARadarHUD::DrawRadar()
+{
+	FVector2D RadarCenter = GetRadarCenterPosition();
+
+	for (float i = 0; i < 360; i+=DegreeStep)
+	{
+		float fixedX = FMath::Cos(i) * RadarRadius;
+		float fixedY = FMath::Sin(i) * RadarRadius;
+
+		DrawLine(RadarCenter.X, RadarCenter.Y, RadarCenter.X + fixedX, RadarCenter.Y + fixedY, FLinearColor::Gray, 1.f);
+	}
 }
