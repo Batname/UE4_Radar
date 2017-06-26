@@ -39,6 +39,8 @@ void ARadarHUD::DrawHUD()
 	DrawPlayerInRadar();
 	PerformRadarRaycast();
 	DrawRaycastedActors();
+
+	RadarActors.Empty();
 }
 
 FVector2D ARadarHUD::GetRadarCenterPosition()
